@@ -1,1 +1,2 @@
-# POJECT 1
+# PROJECT 1
+## Flask app that uses SQL and NoSQL databases
