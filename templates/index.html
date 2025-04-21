@@ -14,11 +14,11 @@
     <nav class="navbar navbar-inverse">
         <div class="container-fluid">
           <div class="navbar-header">
-            <a class="navbar-brand" href="#">MovieTracker</a>
+            <a class="navbar-brand" href="/index">MovieTracker</a>
           </div>
           <ul class="nav navbar-nav">
-            <li class="active"><a href="#">Home</a></li>
-            <li><a href="#">My Movies</a></li>
+            <li class="active"><a href="/index">Home</a></li>
+            <li><a href="{{ url_for('watchlist') }}">Watchlist</a></li>
             <!--<li><a href="#">Page 2</a></li>-->
           </ul>
           <ul class="nav navbar-nav navbar-right">
@@ -26,7 +26,7 @@
             <li><a href="{{ url_for('logout') }}"><span class="glyphicon glyphicon-log-out    "></span> Logout</a></li>
           </ul>
         </div>
-      </nav>
+    </nav>
     <header>
         <h1></h1>
     </header>
@@ -44,6 +44,21 @@
 
             // Initialize Select2
             $('.js-example-basic-multiple').select2();
+        });
+    </script>
+    <form action="{{ url_for('add_to_watchlist') }}" method="post" class="text-center">
+        <input type="hidden" id="selected-movies" name="selected_movies">
+        <button type="submit" class="btn btn-primary">Add to Watchlist</button>
+    </form>
+    <script>
+        $(document).ready(function() {
+            $('#movies-select').removeAttr('hidden');
+            $('.js-example-basic-multiple').select2();
+    
+            $('#movies-select').on('change', function() {
+                let selected = $(this).val(); // Array of selected movie titles
+                $('#selected-movies').val(JSON.stringify(selected));
+            });
         });
     </script>
     <table class="table table-bordered table-striped mt-2">
@@ -71,4 +86,5 @@
     <footer>
         <p class="text-center">&copy; 2023 My Web Page</p>
     </footer>
+</body>
 </html>

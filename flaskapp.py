@@ -2,6 +2,7 @@ from flask import Flask
 from flask import render_template, request, redirect, url_for, session, flash
 import pymysql
 import creds
+import json
 from dbCode import *
 from functools import wraps
 
@@ -64,6 +65,56 @@ def index():
   #get items list from the database
   movies = get_movies()
   return render_template('index.html', items=movies)
+
+@app.route('/add_to_watchlist', methods=['POST'])
+@login_required
+def add_to_watchlist():
+    raw_selected = request.form.get('selected_movies')
+    if not raw_selected:
+        flash("No movies selected.", "danger")
+        return redirect(url_for('index'))
+
+    selected_titles = json.loads(raw_selected)
+    username = session['user']
+    movies = get_movies()
+
+    # Map titles to IDs
+    title_to_id = {m['title']: m['movie_id'] for m in movies}
+    added = []
+
+    for title in selected_titles:
+        movie_id = title_to_id.get(title)
+        if movie_id:
+            add_movie_to_watchlist(username, movie_id)
+            added.append(title)
+
+    if added:
+        flash(f"Added {', '.join(added)} to your watchlist.", "success")
+    else:
+        flash("No valid movies were added.", "danger")
+
+    return redirect(url_for('index'))
+
+@app.route('/watchlist')
+@login_required
+def watchlist():
+    username = session['user']
+    
+    # Get user's saved movie IDs from DynamoDB
+    user = get_user(username)
+    movie_ids = user.get('watchlist', [])  # default to empty list
+
+    # If watchlist is empty
+    if not movie_ids:
+        return render_template('watchlist.html', movies=[])
+
+    # Fetch movie details from SQL
+    placeholders = ','.join(['%s'] * len(movie_ids))
+    query = f"""SELECT movie_id, title, overview FROM movie WHERE movie_id IN ({placeholders})"""
+    movies = execute_query(query, movie_ids)
+
+    return render_template('watchlist.html', movies=movies)
+
 
 @app.route('/logout')
 def logout():

@@ -31,6 +31,19 @@ def get_movies():
     FROM movie;"""
   return execute_query(query)
 
+def add_movie_to_watchlist(username, movie_id):
+    # Use add if the field exists, or set if it doesn’t
+    user = get_user(username)
+    watchlist = user.get('watchlist', [])
+    
+    if movie_id not in watchlist:
+        watchlist.append(movie_id)
+        user_table.update_item(
+            Key={'username': username},
+            UpdateExpression='SET watchlist = :wl',
+            ExpressionAttributeValues={':wl': watchlist}
+        )
+
 
 #Create DynamoDB session and reference the users table
 dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
