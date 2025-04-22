@@ -115,6 +115,33 @@ def watchlist():
 
     return render_template('watchlist.html', movies=movies)
 
+@app.route('/remove_from_watchlist', methods=['POST'])
+@login_required
+def remove_from_watchlist():
+    username = session['user']
+    movie_id = request.form.get('movie_id')
+
+    if not movie_id:
+        return redirect(url_for('watchlist'))
+    
+    movie_id = int(movie_id)
+
+    # Fetch current watchlist
+    user = get_user(username)
+    watchlist = user.get('watchlist', [])
+
+    # Remove movie_id if it's in the list
+    if movie_id in watchlist:
+        watchlist.remove(movie_id)
+        # Update DynamoDB
+        user_table.update_item(
+            Key={'username': username},
+            UpdateExpression='SET watchlist = :w',
+            ExpressionAttributeValues={':w': watchlist}
+        )
+
+    return redirect(url_for('watchlist'))
+
 
 @app.route('/logout')
 def logout():
